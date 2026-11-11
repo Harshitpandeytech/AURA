@@ -31,6 +31,7 @@ android {
         }
         val rawKey = properties.getProperty("GEMINI_API_KEY", "").trim()
         val gmailClientId = properties.getProperty("GMAIL_CLIENT_ID", "").trim()
+        val geminiModel = properties.getProperty("GEMINI_MODEL", "gemini-2.5-flash").trim()
         val escapedKey = rawKey
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
@@ -38,6 +39,7 @@ android {
             .replace("\r", "")
         buildConfigField("String", "GEMINI_API_KEY", "\"$escapedKey\"")
         buildConfigField("String", "GMAIL_CLIENT_ID", "\"${gmailClientId.replace("\"", "\\\"")}\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"${geminiModel.replace("\"", "\\\"")}\"")
     }
 
     buildTypes {

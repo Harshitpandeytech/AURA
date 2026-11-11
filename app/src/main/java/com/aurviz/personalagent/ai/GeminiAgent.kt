@@ -15,7 +15,7 @@ data class GeminiResponse(val text: String?, val functionCalls: List<GeminiFunct
 class GeminiAgent(
     private val client: OkHttpClient,
     private val config: AppConfig,
-    private val model: String = "gemini-2.0-flash"
+    private val model: String = config.geminiModel
 ) {
     constructor() : this(OkHttpClient(), AppConfig(""))
 
@@ -49,6 +49,7 @@ class GeminiAgent(
             if (!response.isSuccessful) {
                 error("Gemini request failed (${response.code}): ${parseError(body)}")
             }
+            if (body.isBlank()) error("Gemini returned an empty response.")
             parseResponse(Json.parseToJsonElement(body).jsonObject)
         }
     }

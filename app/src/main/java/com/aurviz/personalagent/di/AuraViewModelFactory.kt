@@ -35,6 +35,7 @@ class AuraViewModelFactory(
                     scheduledTaskRepository = container.scheduledTaskRepository,
                     executionLogRepository = container.executionLogRepository,
                     pendingActionRepository = container.pendingActionRepository,
+                    agentScheduler = container.agentScheduler,
                     gmailApiService = container.gmailApiService,
                     gmailOAuthManager = container.gmailOAuthManager
                 )

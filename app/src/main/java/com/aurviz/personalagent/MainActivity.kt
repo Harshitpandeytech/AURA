@@ -38,9 +38,10 @@ class MainActivity : ComponentActivity() {
 
     private fun handleOAuthIntent(intent: Intent?) {
         val code = intent?.data?.getQueryParameter("code") ?: return
+        val state = intent.data?.getQueryParameter("state")
         val auraApplication = application as AURAApplication
         lifecycleScope.launch {
-            runCatching { auraApplication.appContainer.gmailOAuthManager.exchangeCode(code) }
+            runCatching { auraApplication.appContainer.gmailOAuthManager.exchangeCode(code, state) }
                 .onFailure { android.util.Log.e("AURA", "Gmail authorization failed", it) }
         }
     }

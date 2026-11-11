@@ -112,7 +112,11 @@ class AppContainer(private val applicationContext: Context) {
     }
 
     val appConfig: AppConfig by lazy {
-        AppConfig(BuildConfig.GEMINI_API_KEY, BuildConfig.GMAIL_CLIENT_ID)
+        AppConfig(
+            apiKey = BuildConfig.GEMINI_API_KEY,
+            gmailClientId = BuildConfig.GMAIL_CLIENT_ID,
+            geminiModel = BuildConfig.GEMINI_MODEL
+        )
     }
 
     val viewModelFactory: AuraViewModelFactory by lazy { AuraViewModelFactory(this) }

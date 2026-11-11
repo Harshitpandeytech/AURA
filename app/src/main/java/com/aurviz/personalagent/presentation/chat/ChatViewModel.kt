@@ -74,7 +74,20 @@ class ChatViewModel(
                 val complete = (_uiState.value as? UiState.Success)?.data ?: latest
                 publish(UiState.Success(complete.copy(executionStatus = null)))
             } catch (error: Exception) {
-                _uiState.value = UiState.Error(error.message ?: "Unable to send message")
+                val current = (_uiState.value as? UiState.Success)?.data ?: latest
+                val message = error.message ?: "Unable to contact the AI service."
+                publish(
+                    UiState.Success(
+                        current.copy(
+                            messages = current.messages + ChatMessage(
+                                content = message,
+                                role = MessageRole.ASSISTANT
+                            ),
+                            isProcessing = false,
+                            executionStatus = null
+                        )
+                    )
+                )
             }
         }
     }

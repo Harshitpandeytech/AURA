@@ -6,6 +6,7 @@ import com.aurviz.personalagent.domain.repository.ExecutionLogRepository
 import com.aurviz.personalagent.domain.repository.MemoryRepository
 import com.aurviz.personalagent.domain.repository.PendingActionRepository
 import com.aurviz.personalagent.domain.repository.ScheduledTaskRepository
+import com.aurviz.personalagent.domain.scheduler.AgentScheduler
 import com.aurviz.personalagent.utils.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,7 @@ class SettingsViewModel(
     private val scheduledTaskRepository: ScheduledTaskRepository,
     private val executionLogRepository: ExecutionLogRepository,
     private val pendingActionRepository: PendingActionRepository,
+    private val agentScheduler: AgentScheduler? = null,
     private val gmailApiService: GmailApiService? = null,
     private val gmailOAuthManager: GmailOAuthManager? = null
 ) : ViewModel() {
@@ -48,15 +50,17 @@ class SettingsViewModel(
         }
     }
 
-    fun clearAllData() {
+    fun clearAllData(onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {
+                agentScheduler?.cancelAll()
                 memoryRepository.deleteAllMemories()
                 scheduledTaskRepository.deleteAllTasks()
                 executionLogRepository.deleteAllLogs()
                 pendingActionRepository.deleteAllActions()
                 publish(UiState.Success(latest.copy(statusMessage = "All local data cleared")))
+                onComplete()
             } catch (error: Exception) {
                 _uiState.value = UiState.Error(error.message ?: "Unable to clear data")
             }

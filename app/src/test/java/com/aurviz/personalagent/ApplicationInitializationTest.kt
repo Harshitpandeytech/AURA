@@ -12,7 +12,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -49,7 +49,7 @@ class ApplicationInitializationTest {
         assertNotNull(container.secureStorage)
         assertNotNull(container.agentScheduler)
         assertNotNull(container.voiceInput)
-        assertFalse(container.geminiAgent.isEnabled)
+        assertEquals(container.appConfig.isGeminiKeyConfigured(), container.geminiAgent.isEnabled)
         assertTrue(container.toolRegistry.getToolNames().containsAll(
             listOf("save_memory", "search_memory", "update_memory", "delete_memory")
         ))

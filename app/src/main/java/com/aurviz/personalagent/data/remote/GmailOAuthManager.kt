@@ -10,6 +10,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import android.util.Base64
+import java.security.MessageDigest
+import java.security.SecureRandom
 
 class GmailOAuthManager(
     private val client: OkHttpClient,
@@ -17,11 +20,23 @@ class GmailOAuthManager(
     private val clientId: String,
     private val redirectUri: String = "com.aurviz.personalagent:/oauth2redirect"
 ) {
-    fun authorizationUri(state: String): Uri =
-        GmailApiService.authorizationUri(clientId, redirectUri, state)
+    fun authorizationUri(state: String): Uri {
+        val verifier = ByteArray(32).also { SecureRandom().nextBytes(it) }
+            .let { Base64.encodeToString(it, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING) }
+        val challenge = Base64.encodeToString(
+            MessageDigest.getInstance("SHA-256").digest(verifier.toByteArray()),
+            Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING
+        )
+        secureStorage.putString(OAUTH_STATE, state)
+        secureStorage.putString(CODE_VERIFIER, verifier)
+        return GmailApiService.authorizationUri(clientId, redirectUri, state, challenge)
+    }
 
-    suspend fun exchangeCode(code: String): Unit = withContext(Dispatchers.IO) {
+    suspend fun exchangeCode(code: String, state: String?): Unit = withContext(Dispatchers.IO) {
         require(clientId.isNotBlank()) { "Gmail OAuth client ID is not configured" }
+        require(state == secureStorage.getString(OAUTH_STATE)) {
+            "Gmail OAuth state validation failed. Start the connection again."
+        }
         val request = Request.Builder()
             .url("https://oauth2.googleapis.com/token")
             .post(
@@ -30,6 +45,7 @@ class GmailOAuthManager(
                     .add("client_id", clientId)
                     .add("redirect_uri", redirectUri)
                     .add("grant_type", "authorization_code")
+                    .add("code_verifier", secureStorage.getString(CODE_VERIFIER).orEmpty())
                     .build()
             )
             .build()
@@ -44,6 +60,16 @@ class GmailOAuthManager(
             json["refresh_token"]?.jsonPrimitive?.content?.let {
                 secureStorage.putString(GmailApiService.REFRESH_TOKEN, it)
             }
+            secureStorage.remove(OAUTH_STATE)
+            secureStorage.remove(CODE_VERIFIER)
         }
+
+        secureStorage.remove(OAUTH_STATE)
+        secureStorage.remove(CODE_VERIFIER)
+    }
+
+    companion object {
+        private const val OAUTH_STATE = "gmail_oauth_state"
+        private const val CODE_VERIFIER = "gmail_code_verifier"
     }
 }

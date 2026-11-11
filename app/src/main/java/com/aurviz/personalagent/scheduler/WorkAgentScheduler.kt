@@ -1,6 +1,7 @@
 package com.aurviz.personalagent.scheduler
 
 import android.content.Context
+import androidx.work.WorkManager
 import com.aurviz.personalagent.domain.scheduler.AgentScheduler
 import com.aurviz.personalagent.domain.repository.ScheduledTaskRepository
 import com.aurviz.personalagent.utils.Logger
@@ -28,5 +29,9 @@ class WorkAgentScheduler(
 
     override fun cancel(taskId: Long) {
         WorkScheduler(context).cancel(taskId)
+    }
+
+    override fun cancelAll() {
+        WorkManager.getInstance(context).cancelAllWork()
     }
 }

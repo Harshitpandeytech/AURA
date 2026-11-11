@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
+import android.app.Activity
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aurviz.personalagent.presentation.components.ErrorState
 import com.aurviz.personalagent.presentation.components.LoadingState
@@ -81,7 +82,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = auraViewModel()) {
                 TextButton(
                     onClick = {
                         confirmClear = false
-                        viewModel.clearAllData()
+                        viewModel.clearAllData {
+                            (context as? Activity)?.recreate()
+                        }
                     }
                 ) {
                     Text("Clear")

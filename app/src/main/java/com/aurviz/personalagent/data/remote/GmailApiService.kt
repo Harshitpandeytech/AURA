@@ -85,8 +85,13 @@ class GmailApiService(
         const val ACCESS_TOKEN = "gmail_access_token"
         const val REFRESH_TOKEN = "gmail_refresh_token"
 
-        fun authorizationUri(clientId: String, redirectUri: String, state: String): Uri =
-            Uri.parse("https://accounts.google.com/o/oauth2/v2/auth").buildUpon()
+        fun authorizationUri(
+            clientId: String,
+            redirectUri: String,
+            state: String,
+            codeChallenge: String? = null
+        ): Uri {
+            val builder = Uri.parse("https://accounts.google.com/o/oauth2/v2/auth").buildUpon()
                 .appendQueryParameter("client_id", clientId)
                 .appendQueryParameter("redirect_uri", redirectUri)
                 .appendQueryParameter("response_type", "code")
@@ -94,6 +99,11 @@ class GmailApiService(
                 .appendQueryParameter("prompt", "consent")
                 .appendQueryParameter("scope", "https://www.googleapis.com/auth/gmail.modify")
                 .appendQueryParameter("state", state)
-                .build()
+            codeChallenge?.let {
+                builder.appendQueryParameter("code_challenge", it)
+                    .appendQueryParameter("code_challenge_method", "S256")
+            }
+            return builder.build()
+        }
     }
 }
