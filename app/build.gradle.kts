@@ -31,7 +31,7 @@ android {
         }
         val rawKey = properties.getProperty("GEMINI_API_KEY", "").trim()
         val gmailClientId = properties.getProperty("GMAIL_CLIENT_ID", "").trim()
-        val geminiModel = properties.getProperty("GEMINI_MODEL", "gemini-2.5-flash").trim()
+        val geminiModel = properties.getProperty("GEMINI_MODEL", "gemini-3.8-flash").trim()
         val escapedKey = rawKey
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")

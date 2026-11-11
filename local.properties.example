@@ -2,5 +2,5 @@
 # local.properties is gitignored. Never commit API keys.
 sdk.dir=/Users/you/Library/Android/sdk
 GEMINI_API_KEY=
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.8-flash
 GMAIL_CLIENT_ID=
