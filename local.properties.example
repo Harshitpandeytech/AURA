@@ -1,0 +1,5 @@
+# Copy this file to local.properties and fill in your own values.
+# local.properties is gitignored. Never commit API keys.
+sdk.dir=/Users/you/Library/Android/sdk
+GEMINI_API_KEY=
+GMAIL_CLIENT_ID=
