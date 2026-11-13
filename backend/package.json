@@ -16,14 +16,15 @@
     "node": ">=22.18.0"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
     "@prisma/client": "^6.19.0",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jose": "^6.1.0",
     "pg": "^8.16.3",
+    "prisma": "^6.19.3",
     "zod": "^4.1.12"
   },
   "devDependencies": {
@@ -32,7 +33,6 @@
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.0",
     "@types/pg": "^8.15.5",
-    "prisma": "^6.19.0",
     "typescript": "^5.9.3"
   }
 }

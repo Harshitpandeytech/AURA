@@ -17,11 +17,13 @@ class GeminiAgent(
     private val client: OkHttpClient,
     private val config: AppConfig,
     private val model: String = config.geminiModel,
-    private val fallback: GroqAgent? = null
+    private val fallback: GroqAgent? = null,
+    private val backend: BackendAgent? = null
 ) {
     constructor() : this(OkHttpClient(), AppConfig(""))
 
-    val isEnabled: Boolean get() = config.isGeminiKeyConfigured() || fallback?.isEnabled == true
+    val isEnabled: Boolean
+        get() = backend?.isEnabled == true || config.isGeminiKeyConfigured() || fallback?.isEnabled == true
 
     suspend fun complete(prompt: String): String {
         val response = generate(
@@ -36,6 +38,10 @@ class GeminiAgent(
     }
 
     suspend fun generate(contents: List<JsonObject>, tools: JsonArray): GeminiResponse = withContext(Dispatchers.IO) {
+        if (config.isBackendConfigured()) {
+            return@withContext backend?.generate(contents, tools)
+                ?: error("Production backend is not available.")
+        }
         if (!config.isGeminiKeyConfigured()) {
             return@withContext fallback?.generate(contents, tools)
                 ?: error("AI integration is not enabled")
@@ -56,7 +62,7 @@ class GeminiAgent(
                     val body = response.body?.string().orEmpty()
                     if (response.isSuccessful) {
                         if (body.isBlank()) error("Gemini returned an empty response.")
-                        return@withContext parseResponse(Json.parseToJsonElement(body).jsonObject)
+                        return@withContext parseGeminiResponse(Json.parseToJsonElement(body).jsonObject)
                     }
                     lastFailure = "Gemini request failed (${response.code}): ${parseError(body)}"
                     val retryable = response.code == 429 || response.code == 500 || response.code == 502 || response.code == 503
@@ -76,31 +82,31 @@ class GeminiAgent(
         }
     }
 
-    private fun parseResponse(root: JsonObject): GeminiResponse {
-        val content = root["candidates"]?.jsonArray?.firstOrNull()
-            ?.jsonObject?.get("content")?.jsonObject
-            ?: error("Gemini response did not contain a candidate")
-        val parts = content["parts"]?.jsonArray.orEmpty()
-        val text = parts.mapNotNull { it.jsonObject["text"]?.jsonPrimitive?.content }.joinToString("\n").ifBlank { null }
-        val calls = parts.mapNotNull { part ->
-            part.jsonObject["functionCall"]?.jsonObject?.let { call ->
-                GeminiFunctionCall(
-                    name = call["name"]?.jsonPrimitive?.content ?: error("Function call has no name"),
-                    arguments = call["args"]?.jsonObject.orEmpty().mapValues { (_, value) ->
-                        value.jsonPrimitive.content
-                    }
-                )
-            }
-        }
-        return GeminiResponse(text, calls, content)
-    }
-
-    private fun parseError(body: String): String =
-        runCatching { Json.parseToJsonElement(body).jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content }
-            .getOrNull() ?: body.take(300)
-
     private companion object {
         const val MAX_ATTEMPTS = 3
         val RETRY_DELAYS_MS = longArrayOf(800, 1_600, 3_200)
     }
 }
+
+internal fun parseGeminiResponse(root: JsonObject): GeminiResponse {
+    val content = root["candidates"]?.jsonArray?.firstOrNull()
+        ?.jsonObject?.get("content")?.jsonObject
+        ?: error("Gemini response did not contain a candidate")
+    val parts = content["parts"]?.jsonArray.orEmpty()
+    val text = parts.mapNotNull { it.jsonObject["text"]?.jsonPrimitive?.content }.joinToString("\n").ifBlank { null }
+    val calls = parts.mapNotNull { part ->
+        part.jsonObject["functionCall"]?.jsonObject?.let { call ->
+            GeminiFunctionCall(
+                name = call["name"]?.jsonPrimitive?.content ?: error("Function call has no name"),
+                arguments = call["args"]?.jsonObject.orEmpty().mapValues { (_, value) ->
+                    value.jsonPrimitive.content
+                }
+            )
+        }
+    }
+    return GeminiResponse(text, calls, content)
+}
+
+private fun parseError(body: String): String =
+    runCatching { Json.parseToJsonElement(body).jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content }
+        .getOrNull() ?: body.take(300)

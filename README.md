@@ -30,8 +30,9 @@ Google OAuth, encrypted Gmail token storage, health checks, and a separate sched
 worker. Do not ship provider API keys in the APK.
 
 See [backend/README.md](backend/README.md) for Railway setup and the required PostgreSQL
-Prisma schema and migrations. The Android network clients should be pointed at the backend `/v1` API for a
-production build; the current direct-provider path remains for local development.
+Prisma schema and migrations. Set `AURA_BACKEND_URL` in `local.properties` for a production build. Release
+builds route AI through the authenticated backend and do not package Gemini or
+Groq keys. The direct-provider path remains for local debug development.
 
 ## Implemented
 

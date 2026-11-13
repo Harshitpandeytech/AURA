@@ -4,10 +4,12 @@ import android.content.Context
 import com.aurviz.personalagent.BuildConfig
 import com.aurviz.personalagent.ai.GeminiAgent
 import com.aurviz.personalagent.ai.GroqAgent
+import com.aurviz.personalagent.ai.BackendAgent
 import com.aurviz.personalagent.ai.PromptBuilder
 import com.aurviz.personalagent.ai.ToolCallParser
 import com.aurviz.personalagent.data.local.AuraDatabase
 import com.aurviz.personalagent.data.remote.NetworkClient
+import com.aurviz.personalagent.data.remote.BackendClient
 import com.aurviz.personalagent.data.repository.ExecutionLogRepositoryImpl
 import com.aurviz.personalagent.data.repository.ConversationContextRepositoryImpl
 import com.aurviz.personalagent.data.repository.MemoryRepositoryImpl
@@ -95,6 +97,13 @@ class AppContainer(private val applicationContext: Context) {
         GmailApiService(networkClient.okHttpClient, secureStorage)
     }
 
+    val backendClient: BackendClient by lazy {
+        BackendClient(networkClient.okHttpClient, appConfig.backendBaseUrl, secureStorage)
+    }
+
+    val backendAuthManager: BackendClient
+        get() = backendClient
+
     val gmailOAuthManager by lazy {
         com.aurviz.personalagent.data.remote.GmailOAuthManager(
             networkClient.okHttpClient,
@@ -112,7 +121,12 @@ class AppContainer(private val applicationContext: Context) {
     val groqAgent: GroqAgent by lazy { GroqAgent(networkClient.okHttpClient, appConfig) }
 
     val geminiAgent: GeminiAgent by lazy {
-        GeminiAgent(networkClient.okHttpClient, appConfig, fallback = groqAgent)
+        GeminiAgent(
+            networkClient.okHttpClient,
+            appConfig,
+            fallback = groqAgent,
+            backend = BackendAgent(backendClient)
+        )
     }
 
     val promptBuilder: PromptBuilder by lazy { PromptBuilder() }
@@ -134,6 +148,7 @@ class AppContainer(private val applicationContext: Context) {
         AppConfig(
             apiKey = BuildConfig.GEMINI_API_KEY,
             gmailClientId = BuildConfig.GMAIL_CLIENT_ID,
+            backendBaseUrl = BuildConfig.AURA_BACKEND_URL,
             geminiModel = BuildConfig.GEMINI_MODEL,
             groqApiKey = BuildConfig.GROQ_API_KEY,
             groqModel = BuildConfig.GROQ_MODEL

@@ -1,6 +1,7 @@
 # Copy this file to local.properties and fill in your own values.
 # local.properties is gitignored. Never commit API keys.
 sdk.dir=/Users/you/Library/Android/sdk
+AURA_BACKEND_URL=https://your-backend.example.com
 GEMINI_API_KEY=
 GEMINI_MODEL=gemini-3.8-flash
 GROQ_API_KEY=

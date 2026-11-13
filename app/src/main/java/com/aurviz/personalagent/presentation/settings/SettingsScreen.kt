@@ -21,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -28,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,6 +55,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = auraViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var confirmClear by remember { mutableStateOf(false) }
+    var backendEmail by rememberSaveable { mutableStateOf("") }
+    var backendPassword by rememberSaveable { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
@@ -71,7 +76,15 @@ fun SettingsScreen(viewModel: SettingsViewModel = auraViewModel()) {
                     viewModel.gmailAuthorizationUri()?.let {
                         context.startActivity(Intent(Intent.ACTION_VIEW, it))
                     }
-                }
+                },
+                backendEmail = backendEmail,
+                backendPassword = backendPassword,
+                onBackendEmailChange = { backendEmail = it },
+                onBackendPasswordChange = { backendPassword = it },
+                onBackendAuth = { register ->
+                    viewModel.authenticateBackend(backendEmail, backendPassword, register)
+                },
+                onBackendSignOut = viewModel::signOutBackend
             )
         }
     }
@@ -106,7 +119,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = auraViewModel()) {
 private fun SettingsContent(
     model: SettingsUiModel,
     onClearData: () -> Unit,
-    onConnectGmail: () -> Unit
+    onConnectGmail: () -> Unit,
+    backendEmail: String,
+    backendPassword: String,
+    onBackendEmailChange: (String) -> Unit,
+    onBackendPasswordChange: (String) -> Unit,
+    onBackendAuth: (Boolean) -> Unit,
+    onBackendSignOut: () -> Unit
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         // Mr. Aura Hero Card
@@ -150,6 +169,47 @@ private fun SettingsContent(
                 subtitle = if (model.apiKeyConfigured) "Configured" else "Not configured",
                 onClick = {}
             )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SettingsSection(title = "Production Backend") {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    if (!model.backendConfigured) "Backend URL is not configured in local.properties."
+                    else if (model.backendAuthenticated) "Connected to the production backend."
+                    else "Sign in before using production AI."
+                )
+                if (model.backendConfigured && !model.backendAuthenticated) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = backendEmail,
+                        onValueChange = onBackendEmailChange,
+                        label = { Text("Email") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = backendPassword,
+                        onValueChange = onBackendPasswordChange,
+                        label = { Text("Password (12+ characters)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row {
+                        Button(onClick = { onBackendAuth(false) }) { Text("Sign in") }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = { onBackendAuth(true) }) { Text("Register") }
+                    }
+                } else if (model.backendAuthenticated) {
+                    TextButton(onClick = onBackendSignOut) { Text("Sign out") }
+                }
+                model.statusMessage?.let {
+                    Text(it, style = MaterialTheme.typography.bodySmall)
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))

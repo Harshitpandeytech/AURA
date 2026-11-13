@@ -30,8 +30,8 @@ export async function generateWithProvider(request: AiRequest): Promise<unknown>
       },
       body: JSON.stringify({
         model: config.GROQ_MODEL,
-        messages: request.contents,
-        tools: request.tools ?? [],
+        messages: request.contents.map(toOpenAiMessage),
+        tools: toOpenAiTools(request.tools ?? []),
         tool_choice: "auto"
       })
     });
@@ -40,4 +40,51 @@ export async function generateWithProvider(request: AiRequest): Promise<unknown>
   }
 
   throw new Error("No AI provider is configured");
+}
+
+function toOpenAiMessage(content: unknown): unknown {
+  if (!isRecord(content)) return content;
+  const parts = Array.isArray(content.parts) ? content.parts : [];
+  const text = parts
+    .filter(isRecord)
+    .map((part) => typeof part.text === "string" ? part.text : "")
+    .filter(Boolean)
+    .join("\n");
+  const functionCalls = parts
+    .filter(isRecord)
+    .map((part) => part.functionCall)
+    .filter(isRecord);
+  if (functionCalls.length > 0) {
+    return {
+      role: "assistant",
+      content: text || null,
+      tool_calls: functionCalls.map((call, index) => ({
+        id: `aura_call_${index}`,
+        type: "function",
+        function: {
+          name: String(call.name ?? ""),
+          arguments: JSON.stringify(call.args ?? {})
+        }
+      }))
+    };
+  }
+  return { role: content.role === "model" ? "assistant" : "user", content: text };
+}
+
+function toOpenAiTools(tools: unknown[]): unknown[] {
+  return tools.flatMap((tool) => {
+    if (!isRecord(tool) || !Array.isArray(tool.functionDeclarations)) return [];
+    return tool.functionDeclarations.filter(isRecord).map((declaration) => ({
+      type: "function",
+      function: {
+        name: String(declaration.name ?? ""),
+        description: String(declaration.description ?? ""),
+        parameters: declaration.parameters ?? { type: "object", properties: {} }
+      }
+    }));
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

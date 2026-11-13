@@ -115,7 +115,9 @@ Install on a connected device:
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-For a release build:
+For a release build, set `AURA_BACKEND_URL` in `local.properties`. Release
+builds intentionally remove Gemini, Groq, and local Gmail client secrets from
+`BuildConfig`; the app uses the authenticated backend AI service.
 
 ```bash
 ./gradlew assembleRelease
@@ -170,8 +172,9 @@ start requests.
 
 ## 8. Incomplete or production follow-up items
 
-- The Android production flavor still needs to be connected to the backend login
-  and `/v1` API instead of direct provider calls.
+- Android now supports backend login/register and routes production AI calls
+  through `/v1/ai/generate`. Gmail operations still use the local Android OAuth
+  path; server-side Gmail API operation endpoints remain to be added.
 - Backend Gmail and AI flows need an end-to-end Railway/PostgreSQL deployment test.
 - A production release needs signing configuration, Play App Signing, privacy
   policy, OAuth verification, and notification permission testing.

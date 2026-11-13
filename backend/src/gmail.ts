@@ -47,17 +47,25 @@ export async function completeGoogleAuthorization(code: string, state: string) {
   const tokens = (await tokenResponse.json()) as { access_token?: string; refresh_token?: string };
   if (!tokens.access_token) throw new Error("Google did not return an access token");
   const accessToken = tokens.access_token;
+  const profileResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+    headers: { authorization: `Bearer ${accessToken}` }
+  });
+  if (!profileResponse.ok) throw new Error("Google did not return an account profile");
+  const profile = (await profileResponse.json()) as { email?: string };
+  if (!profile.email) throw new Error("Google account profile omitted email");
 
   await withTransaction(async (client) => {
     await client.query(
-      `INSERT INTO gmail_accounts (user_id, access_token_encrypted, refresh_token_encrypted)
-       VALUES ($1, $2, $3)
+      `INSERT INTO gmail_accounts (user_id, email, access_token_encrypted, refresh_token_encrypted)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (user_id) DO UPDATE SET
+         email = EXCLUDED.email,
          access_token_encrypted = EXCLUDED.access_token_encrypted,
          refresh_token_encrypted = COALESCE(EXCLUDED.refresh_token_encrypted, gmail_accounts.refresh_token_encrypted),
          updated_at = NOW()`,
       [
         userId,
+        profile.email,
         encryptSecret(accessToken),
         tokens.refresh_token ? encryptSecret(tokens.refresh_token) : null
       ]

@@ -23,6 +23,7 @@ model User {
   passwordHash  String          @map("password_hash")
   createdAt     DateTime        @default(now()) @map("created_at")
   googleAccount GoogleAccount?
+  oauthStates   OAuthState[]
 
   @@map("users")
 }
@@ -35,7 +36,7 @@ model GoogleAccount {
   encryptedRefreshToken String?            @db.Text @map("refresh_token_encrypted")
   disconnectedAt        DateTime?
   createdAt             DateTime           @default(now()) @map("created_at")
-  updatedAt             DateTime           @updatedAt @map("updated_at")
+  updatedAt             DateTime           @default(now()) @updatedAt @map("updated_at")
   user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   appCodes              AppAuthCode[]
   deviceSessions        DeviceSession[]
@@ -70,6 +71,16 @@ model DeviceSession {
   @@map("device_sessions")
 }
 
+model OAuthState {
+  state     String   @id
+  userId    String   @map("user_id") @db.Uuid
+  expiresAt DateTime @map("expires_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@map("oauth_states")
+}
+
 model ScheduledEmail {
   id             String               @id @default(uuid()) @db.Uuid
   accountId      String               @db.Uuid @map("account_id")
@@ -86,7 +97,7 @@ model ScheduledEmail {
   messageId      String?              @map("message_id")
   attempts       Int                  @default(0)
   createdAt      DateTime             @default(now()) @map("created_at")
-  updatedAt      DateTime             @updatedAt @map("updated_at")
+  updatedAt       DateTime      @default(now()) @updatedAt @map("updated_at")
   executionAt    DateTime?            @map("execution_at")
   lastError      String?              @db.VarChar(500) @map("last_error")
   history        EmailExecution[]

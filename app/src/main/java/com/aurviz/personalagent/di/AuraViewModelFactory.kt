@@ -38,7 +38,8 @@ class AuraViewModelFactory(
                     conversationContextRepository = container.conversationContextRepository,
                     agentScheduler = container.agentScheduler,
                     gmailApiService = container.gmailApiService,
-                    gmailOAuthManager = container.gmailOAuthManager
+                    gmailOAuthManager = container.gmailOAuthManager,
+                    backendClient = container.backendClient
                 )
             else -> throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
         }

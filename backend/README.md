@@ -43,6 +43,7 @@ instances are running. The `/v1/jobs` endpoint creates and lists authenticated
 per-user jobs; job runs are recorded in PostgreSQL.
 
 Prisma is the typed schema and migration source in [`prisma/schema.prisma`](prisma/schema.prisma).
-For Railway deploys, commit migrations generated locally and run `npm run db:migrate`
-as a release step before starting the API and worker services. The legacy
+The repository includes the initial migration under `prisma/migrations/`. Railway
+runs `npm run db:migrate` as a pre-deploy step before starting the API and worker
+services. The legacy
 `src/schema.sql` remains available for inspecting the original tables during migration.
