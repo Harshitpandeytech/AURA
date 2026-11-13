@@ -162,23 +162,125 @@ start requests.
 
 ## 7. Completed features
 
-- Native Kotlin Android application with Jetpack Compose.
-- Text and speech-to-text input.
-- Android Text-to-Speech responses with a mute button.
-- Persistent Room-backed personal memory.
-- Memory search, editing, and deletion.
-- Recent conversation context persisted locally.
-- Gemini function calling with Groq fallback.
-- Bounded multi-step tool execution.
-- Gmail OAuth, email reading, draft preparation, and confirmation-gated sending.
-- HTTPS-only WebView browsing with scrolling and text extraction.
+### Voice-to-action agent
+
+- Accepts text commands and speech-to-text commands.
+- Uses Gemini function calling with Groq fallback during local development.
+- Uses the authenticated Railway AI proxy when `AURA_BACKEND_URL` is configured.
+- Selects tools from a validated registry instead of executing arbitrary model output.
+- Displays tool progress, confirmations, errors, and final results in the chat.
+- Supports bounded multi-step actions with a five-tool-call limit per command.
+- Provides optional Android Text-to-Speech responses with a mute button.
+
+### Personal memory
+
+- Persists memories in Room across app restarts.
+- Stores user preferences and important information by key and category.
+- Ranks relevant memories using query matches across key, value, and category.
+- Retrieves recent conversation context for new commands.
+- Provides memory viewing, editing, search, and deletion.
+- Clears local conversation context when the user clears local data.
+
+### Real-world actions
+
+- Gmail OAuth connection, important-email listing, email reading, draft creation,
+  and confirmation-gated sending.
+- HTTPS-only browser automation with navigation, scrolling, extraction limits,
+  redirect validation, and timeouts.
 - Daily and weekly recurring tasks.
+- Timers, alarms, and stopwatch tools.
 - WorkManager background execution and boot recovery.
 - Execution history and scheduled-task notifications.
-- Backend scaffold with JWT authentication, Prisma schema, AI proxy, Gmail OAuth,
-  encrypted token storage, and PostgreSQL scheduled jobs.
+- Backend authentication, AI proxying, Google OAuth token encryption, PostgreSQL,
+  Prisma migrations, and a separate scheduled worker.
 
-## 8. Final submission checklist
+## 8. Incomplete features and known limitations
+
+- Server-side Gmail read/send endpoints are not complete; the current Gmail
+  action tools use Android-local Gmail OAuth.
+- Android local memory and WorkManager tasks are device-local; they are not
+  synchronized to the backend.
+- WorkManager is not exact-time scheduling and may be deferred by Android.
+- Server-side recurring workflows currently use a simple Railway worker loop;
+  a production queue such as pg-boss would improve retries and observability.
+- Vector memory search and multi-agent orchestration are not implemented.
+- Device-specific performance measurements are still required.
+- APK sideloading is supported; Google Play publishing configuration is outside
+  this assignment scope.
+
+## 9. Requirements coverage
+
+| Assignment requirement | Implementation/status |
+|---|---|
+| Voice and text commands | Completed with speech recognition and Compose chat |
+| AI natural-language planning and tool calling | Completed with Gemini/Groq and bounded orchestration |
+| Persistent memory across restarts | Completed with Room |
+| Relevant memory retrieval | Completed with relevance scoring and conversation context |
+| View and delete memories | Completed in the Memory screen |
+| Compose and send email | Completed locally; send requires explicit confirmation |
+| Browse websites and extract information | Completed with controlled HTTPS WebView |
+| Recurring scheduled tasks | Completed with Room, WorkManager, and boot recovery |
+| Multi-step actions | Completed with ordered tool execution and a call limit |
+| Modular Android architecture | Completed with UI, domain, data, tools, memory, and scheduler layers |
+| Authentication and secure credentials | Backend JWT, encrypted Gmail tokens, encrypted local storage |
+| Network and AI error handling | Explicit HTTP, provider, tool, worker, and repository errors |
+| Android background constraints | WorkManager constraints, retries, notifications, and boot recovery |
+| Backend production boundary | Implemented with Railway API, PostgreSQL, Prisma, and worker |
+| Performance analysis | Procedure and verified build measurements documented; device metrics pending |
+| Cost requirement | Uses free development tools and supports Gemini/Groq free-tier configuration |
+
+## 10. Key technical challenges and solutions
+
+### Reliable agent execution
+
+**Challenge:** Model-generated actions can be invalid, repeated, or unsafe.
+
+**Solution:** The orchestrator exposes only registered tools, validates every
+argument, limits each command to five calls, records each result, and stops on
+confirmation-required actions or execution failure.
+
+### Persistent and relevant memory
+
+**Challenge:** Recency-only memory retrieval becomes less useful as memories grow.
+
+**Solution:** Room stores memories and conversation context persistently.
+Retrieval scores matches across memory keys, values, and categories, with
+stop-word filtering and exact-key bonuses.
+
+### Android scheduling limits
+
+**Challenge:** Android can stop or defer background work.
+
+**Solution:** Tasks are persisted before scheduling, WorkManager uses unique
+work names and network constraints, failed registration rolls back persistence,
+and BootReceiver restores enabled tasks after restart. The UI reports execution
+history instead of promising exact wall-clock execution.
+
+### Secure production architecture
+
+**Challenge:** Provider keys and Gmail refresh tokens must not be exposed in an APK.
+
+**Solution:** Release builds blank provider keys, Android uses an authenticated
+backend URL, Railway stores provider secrets in environment variables, and
+server-side Gmail tokens are encrypted with AES-256-GCM.
+
+### Controlled web access
+
+**Challenge:** Website content is dynamic and untrusted.
+
+**Solution:** BrowserTool accepts HTTPS URLs only, validates redirects, uses a
+temporary JavaScript-enabled WebView, applies a timeout, limits extracted output,
+and returns structured failures.
+
+### Production database deployment
+
+**Challenge:** The API and worker need the same schema without duplicate job claims.
+
+**Solution:** Prisma owns the PostgreSQL schema and committed migration. Railway
+runs migrations before deploy, while the worker claims jobs using database row
+locking and records execution history.
+
+## 11. Final submission checklist
 
 - [x] Source code pushed to GitHub.
 - [x] Railway API and worker configuration documented.
@@ -191,7 +293,28 @@ start requests.
 - [ ] Evaluator installs and tests the APK on an Android device or emulator.
 - [ ] Target-device performance measurements are collected.
 
-## 9. Incomplete or production follow-up items
+## 12. Email submission package
+
+Use the required subject format:
+
+```text
+Aurviz SDE Assignment Submission – [Candidate Name]
+```
+
+Include:
+
+- GitHub repository URL.
+- Railway backend URL and `/health` result.
+- APK file or APK download link.
+- Demo account credentials, if required by the evaluator.
+- Link to [`SubmissionDocumentation/README.md`](./README.md).
+- Link to [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+- Link to [`PERFORMANCE.md`](./PERFORMANCE.md).
+
+Never include Railway environment values, API keys, OAuth client secrets, or
+`local.properties` in the email.
+
+## 13. Incomplete or production follow-up items
 
 - Android now supports backend login/register and routes production AI calls
   through `/v1/ai/generate`. Gmail operations still use the local Android OAuth
@@ -204,38 +327,14 @@ start requests.
   and provider rate-limit handling.
 - Device measurements must be collected on the target emulator or phone.
 
-## 10. Architecture and design
+## 14. Architecture and design
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## 11. Performance
+## 15. Performance
 
 See [PERFORMANCE.md](./PERFORMANCE.md).
 
-## 12. Database
+## 16. Database
 
 See [DATABASE.md](./DATABASE.md).
-
-## 13. Main engineering challenges
-
-### Safe tool execution
-
-The model can request tools, but the orchestrator validates tool names and
-arguments, limits calls per request, records execution results, and requires
-confirmation for email sending.
-
-### Android background limits
-
-WorkManager is used instead of a continuously running service. This supports
-network constraints and boot recovery, but Android may defer execution.
-
-### Credential safety
-
-Local Gmail tokens use encrypted Android storage. The production backend encrypts
-server-side Gmail tokens and keeps AI provider keys outside the APK.
-
-### Failure handling
-
-Network, AI, Gmail, tool, worker, and repository failures are surfaced to the
-user or execution history. Scheduled failures are logged and retried by
-WorkManager where appropriate.
