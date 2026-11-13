@@ -1,5 +1,141 @@
 # Architecture
 
+## Detailed system architecture
+
+```mermaid
+flowchart TB
+    user([User])
+
+    subgraph android["Android application"]
+        ui["Jetpack Compose UI<br/>Chat, Memory, Tasks, History, Settings"]
+        voice["Voice input/output<br/>SpeechRecognizer + Text-to-Speech"]
+        vm["ViewModels + StateFlow"]
+        orchestrator["AgentOrchestrator<br/>prompt context, tool loop, limits"]
+        prompt["PromptBuilder<br/>instructions + memories + conversation"]
+        backendClient["BackendClient<br/>HTTPS + bearer token"]
+        aiClient["GeminiAgent / GroqAgent<br/>local development fallback"]
+        registry["ToolRegistry<br/>validated tool declarations"]
+        tools["Android tools"]
+        browser["BrowserTool<br/>HTTPS WebView, extraction, scrolling"]
+        gmailLocal["Gmail tools<br/>read, draft, confirm, send"]
+        memoryTool["Memory tools<br/>save, search, update, delete"]
+        scheduleTool["Scheduling tools<br/>daily/weekly tasks, alarms, timers"]
+        room["Room database"]
+        memoryDb[("Memories<br/>conversation context")]
+        taskDb[("Tasks + execution logs<br/>pending confirmations")]
+        work["WorkManager + BootReceiver"]
+        speech["Android Text-to-Speech"]
+        secure[("EncryptedSharedPreferences<br/>backend JWT + local Gmail tokens")]
+    end
+
+    subgraph railway["Railway production backend"]
+        api["Node.js / TypeScript API<br/>Helmet, CORS, validation"]
+        auth["Auth service<br/>register, login, JWT"]
+        proxy["AI proxy<br/>provider fallback + request boundary"]
+        oauth["Google OAuth service<br/>state validation + callback"]
+        jobs["Jobs API<br/>authenticated recurring workflows"]
+        worker["Scheduled worker<br/>claim, execute, record result"]
+        prisma["Prisma Client + migrations"]
+        postgres[("PostgreSQL<br/>users, OAuth tokens, jobs, runs")]
+    end
+
+    subgraph external["External services"]
+        gemini["Gemini API"]
+        groq["Groq API"]
+        google["Google OAuth"]
+        gmail["Gmail API"]
+    end
+
+    user --> ui
+    user --> voice
+    voice --> vm
+    ui --> vm
+    vm --> orchestrator
+    orchestrator --> prompt
+    prompt --> memoryDb
+    orchestrator --> registry
+    registry --> tools
+    tools --> browser
+    tools --> gmailLocal
+    tools --> memoryTool
+    tools --> scheduleTool
+    memoryTool --> room
+    scheduleTool --> room
+    gmailLocal --> secure
+    room --> memoryDb
+    room --> taskDb
+    scheduleTool --> work
+    work --> orchestrator
+    orchestrator --> speech
+    speech --> user
+
+    orchestrator --> backendClient
+    backendClient -->|"HTTPS /v1 + JWT"| api
+    orchestrator -.->|"debug-only direct provider path"| aiClient
+    aiClient -.-> gemini
+    aiClient -.-> groq
+
+    api --> auth
+    api --> proxy
+    api --> oauth
+    api --> jobs
+    proxy --> gemini
+    proxy --> groq
+    oauth --> google
+    oauth --> postgres
+    jobs --> postgres
+    auth --> postgres
+    worker --> postgres
+    worker --> gmail
+    prisma --> postgres
+    google -->|"OAuth callback"| oauth
+```
+
+### Main request sequence
+
+```text
+1. User enters text or speech.
+2. Compose sends the command to the ViewModel.
+3. AgentOrchestrator retrieves relevant Room memories.
+4. PromptBuilder creates the bounded agent prompt.
+5. BackendClient sends the request to Railway with the user's JWT.
+6. Backend proxy calls Gemini or Groq; provider keys stay on Railway.
+7. The model returns a final answer or a declared tool call.
+8. Android validates and executes the tool locally.
+9. Tool results return to the bounded agent loop.
+10. The final response is displayed, optionally spoken, and logged.
+```
+
+### Scheduled task sequence
+
+```text
+Task creation
+  -> SchedulerTool validates instruction and time
+  -> Room persists the task
+  -> WorkAgentScheduler registers unique WorkManager work
+  -> BootReceiver restores enabled work after reboot
+  -> AgentWorker loads the task and calls AgentOrchestrator
+  -> ExecutionLogRepository records success/failure
+  -> Notification reports the outcome
+
+Production backend jobs
+  -> POST /v1/jobs persists a PostgreSQL job
+  -> Railway worker claims due rows with row locking
+  -> Worker executes the job and records ScheduledJobRun
+```
+
+### Trust boundaries
+
+| Boundary | Protection |
+|---|---|
+| Android to Railway | HTTPS and bearer JWT authentication |
+| Android local storage | Room for application data; encrypted preferences for tokens |
+| Railway to AI providers | Provider keys exist only in Railway variables |
+| Railway to Google | Server-side OAuth client and encrypted Gmail tokens |
+| Model to Android tools | Tool names and arguments are validated before execution |
+| Email sending | Draft preparation is separate from explicit confirmation |
+| Web browsing | HTTPS-only URLs, redirect checks, timeout, and output cap |
+
 ```text
 Android client
   Compose UI
