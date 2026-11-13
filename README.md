@@ -57,3 +57,33 @@ permission screen when an alarm is created; notification permission must also be
 allowed for alarm notifications to appear.
 
 See [SubmissionDocumentation/README.md](SubmissionDocumentation/README.md) for the complete setup, architecture, performance, database, and submission report.
+
+## Final APK
+
+The final debug APK is generated at:
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
+
+Build it with the Railway backend URL configured in ignored `local.properties`:
+
+```properties
+AURA_BACKEND_URL=https://aura-production-144f5f70.up.railway.app
+```
+
+```bash
+./gradlew assembleDebug
+```
+
+Install on a connected Android device:
+
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+The verified APK checksum from the final build is:
+
+```text
+ed349f6a1ed945ea12149afa4b3b6cab747e60c0673e654d8305f652fbab7d58
+```

@@ -287,6 +287,7 @@ locking and records execution history.
 - [x] Initial Prisma migration committed.
 - [x] APK build verified with the Railway backend URL configured locally.
 - [x] APK output path: `app/build/outputs/apk/debug/app-debug.apk`.
+- [x] Final APK SHA-256: `ed349f6a1ed945ea12149afa4b3b6cab747e60c0673e654d8305f652fbab7d58`.
 - [x] APK installation command documented.
 - [x] Secrets excluded from GitHub (`local.properties` and backend `.env`).
 - [ ] Evaluator creates or receives a backend demo account.
