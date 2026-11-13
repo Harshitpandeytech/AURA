@@ -94,3 +94,29 @@ fun EmptyState(
         )
     }
 }
+
+@Composable
+fun PermissionDialog(
+    title: String,
+    description: String,
+    confirmButtonText: String = "Allow",
+    dismissButtonText: String = "Cancel",
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Start) },
+        text = { Text(description, style = MaterialTheme.typography.bodyMedium) },
+        confirmButton = {
+            Button(onClick = onConfirm) {
+                Text(confirmButtonText)
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(dismissButtonText)
+            }
+        }
+    )
+}

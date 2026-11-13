@@ -76,7 +76,18 @@ class GmailApiService(
             builder.addHeader("Authorization", "Bearer " + token).build()
         ).execute().use { response ->
             val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) error("Gmail request failed (${response.code}): $body")
+            if (!response.isSuccessful) {
+                if (response.code == 403 && body.contains("SERVICE_DISABLED")) {
+                    error(
+                        "Gmail API is disabled for this Google Cloud project. " +
+                            "Enable Gmail API in Google Cloud Console, then reconnect Gmail."
+                    )
+                }
+                if (response.code == 401) {
+                    error("Gmail authorization expired. Disconnect and reconnect Gmail.")
+                }
+                error("Gmail request failed (${response.code}): $body")
+            }
             return if (body.isBlank()) buildJsonObject { } else Json.parseToJsonElement(body).jsonObject
         }
     }

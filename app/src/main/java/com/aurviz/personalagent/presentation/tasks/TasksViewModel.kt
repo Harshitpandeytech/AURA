@@ -57,7 +57,12 @@ class TasksViewModel(
                         nextRunAt = parsed.nextRunAt
                     )
                 )
-                agentScheduler?.enqueue(id)
+                try {
+                    agentScheduler?.enqueue(id)
+                } catch (error: Exception) {
+                    scheduledTaskRepository.deleteTask(id)
+                    throw error
+                }
             } catch (error: Exception) {
                 _uiState.value = UiState.Error(error.message ?: "Unable to schedule task")
             }

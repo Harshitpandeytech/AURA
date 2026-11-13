@@ -14,13 +14,23 @@ import android.util.Base64
 import java.security.MessageDigest
 import java.security.SecureRandom
 
+private fun gmailClientRedirectUri(clientId: String): String =
+    if (clientId.endsWith(".apps.googleusercontent.com")) {
+        "com.googleusercontent.apps.${clientId.substringBefore(".apps.googleusercontent.com")}:/oauth2redirect"
+    } else {
+        "com.aurviz.personalagent:/oauth2redirect"
+    }
+
 class GmailOAuthManager(
     private val client: OkHttpClient,
     private val secureStorage: SecureStorage,
     private val clientId: String,
-    private val redirectUri: String = "com.aurviz.personalagent:/oauth2redirect"
+    private val redirectUri: String = gmailClientRedirectUri(clientId)
 ) {
     fun authorizationUri(state: String): Uri {
+        require(clientId.isNotBlank()) {
+            "Gmail OAuth client ID is not configured. Add GMAIL_CLIENT_ID to local.properties."
+        }
         val verifier = ByteArray(32).also { SecureRandom().nextBytes(it) }
             .let { Base64.encodeToString(it, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING) }
         val challenge = Base64.encodeToString(
@@ -71,5 +81,6 @@ class GmailOAuthManager(
     companion object {
         private const val OAUTH_STATE = "gmail_oauth_state"
         private const val CODE_VERIFIER = "gmail_code_verifier"
+
     }
 }

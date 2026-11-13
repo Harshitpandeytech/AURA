@@ -22,6 +22,13 @@ class MemoryTool(private val repository: MemoryRepository) : AgentTool {
     override suspend fun execute(arguments: Map<String, String>): ToolResult {
         val key = arguments["key"]?.trim().orEmpty()
         val value = arguments["value"]?.trim().orEmpty()
+        if (containsSecret(key) || containsSecret(value)) {
+            return ToolResult(
+                false,
+                "",
+                error = "I will not save passwords, one-time codes, tokens, or secret credentials as memory."
+            )
+        }
         val category = arguments["category"]?.trim().takeUnless { it.isNullOrEmpty() } ?: "general"
         val existing = repository.getMemoryByKey(key)
         val now = System.currentTimeMillis()
@@ -39,6 +46,28 @@ class MemoryTool(private val repository: MemoryRepository) : AgentTool {
 
     override fun validateArguments(arguments: Map<String, String>): String? =
         missing(arguments, "key", "value")
+
+    private fun containsSecret(text: String): Boolean {
+        return SECRET_TERMS.any { term -> text.contains(term, ignoreCase = true) } ||
+            Regex(
+                "(otp|code|pin|pass|token|secret).*\\b\\d{4,8}\\b",
+                RegexOption.IGNORE_CASE
+            ).containsMatchIn(text)
+    }
+
+    private companion object {
+        val SECRET_TERMS = listOf(
+            "password",
+            "passcode",
+            "one-time password",
+            "otp",
+            "access token",
+            "refresh token",
+            "api key",
+            "secret key",
+            "private key"
+        )
+    }
 }
 
 class SearchMemoryTool(private val repository: MemoryRepository) : AgentTool {

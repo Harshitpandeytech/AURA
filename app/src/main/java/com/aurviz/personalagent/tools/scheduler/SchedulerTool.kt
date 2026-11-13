@@ -31,7 +31,16 @@ class SchedulerTool(
                 nextRunAt = parsed.nextRunAt
             )
         )
-        scheduler.enqueue(id)
+        try {
+            scheduler.enqueue(id)
+        } catch (error: Exception) {
+            repository.deleteTask(id)
+            return ToolResult(
+                success = false,
+                output = "",
+                error = "Unable to register scheduled task: ${error.message ?: "scheduler unavailable"}"
+            )
+        }
         return ToolResult(
             success = true,
             output = "Scheduled task $id for ${parsed.expression}.",

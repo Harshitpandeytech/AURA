@@ -6,6 +6,7 @@ import com.aurviz.personalagent.domain.model.Memory
 import com.aurviz.personalagent.domain.model.PendingAction
 import com.aurviz.personalagent.domain.model.PendingActionStatus
 import com.aurviz.personalagent.domain.model.ScheduledTask
+import com.aurviz.personalagent.domain.repository.ConversationContextRepository
 import com.aurviz.personalagent.domain.repository.ExecutionLogRepository
 import com.aurviz.personalagent.domain.repository.MemoryRepository
 import com.aurviz.personalagent.domain.repository.PendingActionRepository
@@ -28,13 +29,15 @@ class SettingsViewModelTest {
         val tasks = RecordingTaskRepository()
         val logs = RecordingLogRepository()
         val actions = RecordingActionRepository()
+        val context = RecordingConversationContextRepository()
         val viewModel = SettingsViewModel(
             appVersion = "1.0.0",
             apiKeyConfigured = false,
             memoryRepository = memory,
             scheduledTaskRepository = tasks,
             executionLogRepository = logs,
-            pendingActionRepository = actions
+            pendingActionRepository = actions,
+            conversationContextRepository = context
         )
 
         viewModel.clearAllData()
@@ -42,8 +45,15 @@ class SettingsViewModelTest {
         val state = viewModel.uiState.value as UiState.Success
         assertEquals("1.0.0", state.data.appVersion)
         assertEquals("All local data cleared", state.data.statusMessage)
-        assertTrue(memory.cleared && tasks.cleared && logs.cleared && actions.cleared)
+        assertTrue(memory.cleared && tasks.cleared && logs.cleared && actions.cleared && context.cleared)
     }
+}
+
+private class RecordingConversationContextRepository : ConversationContextRepository {
+    var cleared = false
+    override suspend fun get(): String? = null
+    override suspend fun save(content: String) = Unit
+    override suspend fun clear() { cleared = true }
 }
 
 private class RecordingMemoryRepository : MemoryRepository {

@@ -9,4 +9,9 @@ Room database `aura_database` contains:
 
 Memory records are intentionally separate from chat messages. The application does not persist conversation history as personal memory.
 
-Repositories expose domain models and mappers isolate Room entities from UI and agent code. Keyword retrieval searches memory key, value, and category using SQL `LIKE`.
+Repositories expose domain models and mappers isolate Room entities from UI and agent code. Keyword retrieval searches memory key, value, and category using SQL `LIKE`, then the agent ranks matches by relevance.
+
+The production backend uses PostgreSQL with Prisma. Its schema is in
+[`../backend/prisma/schema.prisma`](../backend/prisma/schema.prisma) and includes
+users, Google accounts, device sessions, encrypted Gmail tokens, scheduled email
+records, execution history, memories, and scheduled jobs.

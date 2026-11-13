@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.aurviz.personalagent.AURAApplication
+import com.aurviz.personalagent.utils.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -20,6 +21,8 @@ class BootReceiver : BroadcastReceiver() {
                 container.scheduledTaskRepository.getEnabledTasks().first().forEach { task ->
                     scheduler.enqueue(task.id, ScheduleParser.parse(task.scheduleExpression))
                 }
+            } catch (error: Exception) {
+                Logger.e("BootReceiver", "Unable to restore scheduled tasks after boot", error)
             } finally {
                 pendingResult.finish()
             }

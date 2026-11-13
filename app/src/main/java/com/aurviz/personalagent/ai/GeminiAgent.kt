@@ -2,6 +2,7 @@ package com.aurviz.personalagent.ai
 
 import com.aurviz.personalagent.di.AppConfig
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -15,11 +16,12 @@ data class GeminiResponse(val text: String?, val functionCalls: List<GeminiFunct
 class GeminiAgent(
     private val client: OkHttpClient,
     private val config: AppConfig,
-    private val model: String = config.geminiModel
+    private val model: String = config.geminiModel,
+    private val fallback: GroqAgent? = null
 ) {
     constructor() : this(OkHttpClient(), AppConfig(""))
 
-    val isEnabled: Boolean get() = config.isGeminiKeyConfigured()
+    val isEnabled: Boolean get() = config.isGeminiKeyConfigured() || fallback?.isEnabled == true
 
     suspend fun complete(prompt: String): String {
         val response = generate(
@@ -34,7 +36,10 @@ class GeminiAgent(
     }
 
     suspend fun generate(contents: List<JsonObject>, tools: JsonArray): GeminiResponse = withContext(Dispatchers.IO) {
-        check(isEnabled) { "AI integration is not enabled" }
+        if (!config.isGeminiKeyConfigured()) {
+            return@withContext fallback?.generate(contents, tools)
+                ?: error("AI integration is not enabled")
+        }
         val payload = buildJsonObject {
             put("contents", JsonArray(contents))
             put("tools", tools)
@@ -44,13 +49,30 @@ class GeminiAgent(
             .header("x-goog-api-key", config.apiKey)
             .post(Json.encodeToString(JsonObject.serializer(), payload).toRequestBody("application/json".toMediaType()))
             .build()
-        client.newCall(request).execute().use { response ->
-            val body = response.body?.string().orEmpty()
-            if (!response.isSuccessful) {
-                error("Gemini request failed (${response.code}): ${parseError(body)}")
+        try {
+            var lastFailure: String? = null
+            repeat(MAX_ATTEMPTS) { attempt ->
+                client.newCall(request).execute().use { response ->
+                    val body = response.body?.string().orEmpty()
+                    if (response.isSuccessful) {
+                        if (body.isBlank()) error("Gemini returned an empty response.")
+                        return@withContext parseResponse(Json.parseToJsonElement(body).jsonObject)
+                    }
+                    lastFailure = "Gemini request failed (${response.code}): ${parseError(body)}"
+                    val retryable = response.code == 429 || response.code == 500 || response.code == 502 || response.code == 503
+                    if (!retryable || attempt == MAX_ATTEMPTS - 1) {
+                        error(lastFailure!!)
+                    }
+                }
+                delay(RETRY_DELAYS_MS[attempt])
             }
-            if (body.isBlank()) error("Gemini returned an empty response.")
-            parseResponse(Json.parseToJsonElement(body).jsonObject)
+            error(lastFailure ?: "Gemini request failed.")
+        } catch (error: Exception) {
+            if (fallback?.isEnabled == true && error.message?.contains("Gemini request failed (") == true) {
+                fallback.generate(contents, tools)
+            } else {
+                throw error
+            }
         }
     }
 
@@ -76,4 +98,9 @@ class GeminiAgent(
     private fun parseError(body: String): String =
         runCatching { Json.parseToJsonElement(body).jsonObject["error"]?.jsonObject?.get("message")?.jsonPrimitive?.content }
             .getOrNull() ?: body.take(300)
+
+    private companion object {
+        const val MAX_ATTEMPTS = 3
+        val RETRY_DELAYS_MS = longArrayOf(800, 1_600, 3_200)
+    }
 }

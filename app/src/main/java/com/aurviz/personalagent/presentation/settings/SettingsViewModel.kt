@@ -3,6 +3,7 @@ package com.aurviz.personalagent.presentation.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aurviz.personalagent.domain.repository.ExecutionLogRepository
+import com.aurviz.personalagent.domain.repository.ConversationContextRepository
 import com.aurviz.personalagent.domain.repository.MemoryRepository
 import com.aurviz.personalagent.domain.repository.PendingActionRepository
 import com.aurviz.personalagent.domain.repository.ScheduledTaskRepository
@@ -31,6 +32,7 @@ class SettingsViewModel(
     private val scheduledTaskRepository: ScheduledTaskRepository,
     private val executionLogRepository: ExecutionLogRepository,
     private val pendingActionRepository: PendingActionRepository,
+    private val conversationContextRepository: ConversationContextRepository? = null,
     private val agentScheduler: AgentScheduler? = null,
     private val gmailApiService: GmailApiService? = null,
     private val gmailOAuthManager: GmailOAuthManager? = null
@@ -59,6 +61,7 @@ class SettingsViewModel(
                 scheduledTaskRepository.deleteAllTasks()
                 executionLogRepository.deleteAllLogs()
                 pendingActionRepository.deleteAllActions()
+                conversationContextRepository?.clear()
                 publish(UiState.Success(latest.copy(statusMessage = "All local data cleared")))
                 onComplete()
             } catch (error: Exception) {

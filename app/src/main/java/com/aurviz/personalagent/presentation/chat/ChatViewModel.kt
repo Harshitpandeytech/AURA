@@ -6,6 +6,8 @@ import com.aurviz.personalagent.domain.model.ChatMessage
 import com.aurviz.personalagent.domain.model.MessageRole
 import com.aurviz.personalagent.domain.agent.AgentOrchestrator
 import com.aurviz.personalagent.utils.UiState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +34,7 @@ class ChatViewModel(
     val uiState: StateFlow<UiState<ChatUiModel>> = _uiState.asStateFlow()
 
     private var latest = ChatUiModel()
+    private var responseJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -42,6 +45,14 @@ class ChatViewModel(
     fun onDraftChange(value: String) {
         val current = (_uiState.value as? UiState.Success)?.data ?: latest
         publish(UiState.Success(current.copy(draft = value)))
+    }
+
+    fun startNewChat() {
+        responseJob?.cancel()
+        publish(UiState.Success(ChatUiModel()))
+        viewModelScope.launch {
+            agentOrchestrator?.clearConversationContext()
+        }
     }
 
     fun sendMessage() {
@@ -57,11 +68,14 @@ class ChatViewModel(
         )
         publish(UiState.Success(pending.copy(isProcessing = true, executionStatus = ExecutionStatus.UNDERSTANDING)))
 
-        viewModelScope.launch {
+        responseJob = viewModelScope.launch {
             try {
                 publish(UiState.Success(latest.copy(isProcessing = true, executionStatus = ExecutionStatus.PLANNING)))
                 publish(UiState.Success(latest.copy(isProcessing = true, executionStatus = ExecutionStatus.EXECUTING)))
-                val reply = agentOrchestrator?.processCommand(text) ?: ChatMessage(
+                val reply = agentOrchestrator?.processCommand(
+                    userMessage = text,
+                    recentMessages = current.messages
+                ) ?: ChatMessage(
                     content = "AURA is set up. AI responses are not connected yet.",
                     role = MessageRole.ASSISTANT
                 )
@@ -73,6 +87,8 @@ class ChatViewModel(
                 kotlinx.coroutines.delay(1200)
                 val complete = (_uiState.value as? UiState.Success)?.data ?: latest
                 publish(UiState.Success(complete.copy(executionStatus = null)))
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 val current = (_uiState.value as? UiState.Success)?.data ?: latest
                 val message = error.message ?: "Unable to contact the AI service."
@@ -93,6 +109,15 @@ class ChatViewModel(
     }
 
     fun setDraftFromVoice(value: String) = onDraftChange(value)
+
+    fun sendVoiceMessage(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        val current = (_uiState.value as? UiState.Success)?.data ?: latest
+        if (current.isProcessing) return
+        publish(UiState.Success(current.copy(draft = trimmed)))
+        sendMessage()
+    }
 
     fun confirmPendingAction() {
         val orchestrator = agentOrchestrator ?: return

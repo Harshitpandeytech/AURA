@@ -1,6 +1,10 @@
 package com.aurviz.personalagent.scheduler
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.aurviz.personalagent.AURAApplication
@@ -32,6 +36,10 @@ class AgentWorker(
                 )
             )
             updateNextRun(container, task)
+            showNotification(
+                title = "AURA Scheduled Task",
+                message = response.content
+            )
             Result.success()
         } catch (error: Exception) {
             container.executionLogRepository.insertLog(
@@ -47,6 +55,36 @@ class AgentWorker(
         }
     }
 
+    private fun showNotification(title: String, message: String) {
+        runCatching {
+            val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
+                ?: return
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val channel = NotificationChannel(
+                    CHANNEL_ID,
+                    "AURA Scheduled Tasks",
+                    NotificationManager.IMPORTANCE_DEFAULT
+                )
+                notificationManager.createNotificationChannel(channel)
+            }
+            val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_dialog_info)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .build()
+            notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        }.onFailure { error ->
+            com.aurviz.personalagent.utils.Logger.e(
+                "AgentWorker",
+                "Unable to show scheduled-task notification",
+                error
+            )
+        }
+    }
+
     private suspend fun updateNextRun(
         container: com.aurviz.personalagent.di.AppContainer,
         task: com.aurviz.personalagent.domain.model.ScheduledTask
@@ -59,5 +97,6 @@ class AgentWorker(
 
     companion object {
         const val TASK_ID = "task_id"
+        const val CHANNEL_ID = "aura_scheduled_tasks"
     }
 }

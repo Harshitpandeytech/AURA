@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ScheduledEmailStatus {
+  SCHEDULED
+  PROCESSING
+  UPDATING
+  SENT
+  FAILED
+  CANCELLED
+  UNKNOWN
+}
+
+model User {
+  id            String          @id @db.Uuid
+  email         String          @unique
+  passwordHash  String          @map("password_hash")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  googleAccount GoogleAccount?
+
+  @@map("users")
+}
+
+model GoogleAccount {
+  id                    String             @id @default(uuid()) @db.Uuid
+  userId                String             @unique @db.Uuid @map("user_id")
+  email                 String             @unique
+  encryptedAccessToken  String?            @db.Text @map("access_token_encrypted")
+  encryptedRefreshToken String?            @db.Text @map("refresh_token_encrypted")
+  disconnectedAt        DateTime?
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+  user                  User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appCodes              AppAuthCode[]
+  deviceSessions        DeviceSession[]
+  scheduledEmails       ScheduledEmail[]
+
+  @@map("gmail_accounts")
+}
+
+model AppAuthCode {
+  id        String        @id @default(uuid()) @db.Uuid
+  codeHash  String        @unique
+  accountId String        @db.Uuid @map("account_id")
+  account   GoogleAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  expiresAt DateTime      @map("expires_at")
+  usedAt    DateTime?     @map("used_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([expiresAt])
+  @@map("app_auth_codes")
+}
+
+model DeviceSession {
+  id        String        @id @default(uuid()) @db.Uuid
+  tokenHash String        @unique @map("token_hash")
+  accountId String        @db.Uuid @map("account_id")
+  account   GoogleAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  expiresAt DateTime      @map("expires_at")
+  revokedAt DateTime?     @map("revoked_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([accountId, expiresAt])
+  @@map("device_sessions")
+}
+
+model ScheduledEmail {
+  id             String               @id @default(uuid()) @db.Uuid
+  accountId      String               @db.Uuid @map("account_id")
+  account        GoogleAccount        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  recipient      String
+  subject        String
+  body           String               @db.Text
+  scheduledAt    DateTime             @map("scheduled_at")
+  timeZone       String               @map("time_zone")
+  status         ScheduledEmailStatus @default(SCHEDULED)
+  idempotencyKey String               @unique @map("idempotency_key")
+  pgBossJobId    String?              @map("pg_boss_job_id")
+  jobVersion     Int                  @default(1) @map("job_version")
+  messageId      String?              @map("message_id")
+  attempts       Int                  @default(0)
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  executionAt    DateTime?            @map("execution_at")
+  lastError      String?              @db.VarChar(500) @map("last_error")
+  history        EmailExecution[]
+
+  @@index([accountId, createdAt])
+  @@index([accountId, status, scheduledAt])
+  @@map("scheduled_emails")
+}
+
+model EmailExecution {
+  id               String               @id @default(uuid()) @db.Uuid
+  scheduledEmailId String               @db.Uuid @map("scheduled_email_id")
+  email            ScheduledEmail       @relation(fields: [scheduledEmailId], references: [id], onDelete: Cascade)
+  attempt          Int
+  status           ScheduledEmailStatus
+  errorDetails     String?              @db.VarChar(500) @map("error_details")
+  gmailMessageId   String?              @map("gmail_message_id")
+  createdAt        DateTime             @default(now()) @map("created_at")
+
+  @@unique([scheduledEmailId, attempt])
+  @@index([scheduledEmailId, createdAt])
+  @@map("email_executions")
+}
+
+model Memory {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @db.Uuid @map("user_id")
+  key       String
+  value     String   @db.Text
+  category  String   @default("general")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, key])
+  @@index([userId, updatedAt])
+  @@map("memories")
+}
+
+model ScheduledJob {
+  id              BigInt   @id @default(autoincrement())
+  userId          String   @db.Uuid @map("user_id")
+  instruction     String
+  nextRunAt       DateTime @map("next_run_at")
+  intervalSeconds Int      @default(86400) @map("interval_seconds")
+  enabled         Boolean  @default(true)
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  runs            ScheduledJobRun[]
+
+  @@index([enabled, nextRunAt])
+  @@map("scheduled_jobs")
+}
+
+model ScheduledJobRun {
+  id          BigInt        @id @default(autoincrement())
+  jobId       BigInt        @map("job_id")
+  job         ScheduledJob  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status      String
+  result      String?       @db.Text
+  error       String?       @db.Text
+  startedAt   DateTime      @default(now()) @map("started_at")
+  completedAt DateTime?     @map("completed_at")
+
+  @@index([jobId, startedAt])
+  @@map("scheduled_job_runs")
+}

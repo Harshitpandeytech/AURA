@@ -32,6 +32,8 @@ android {
         val rawKey = properties.getProperty("GEMINI_API_KEY", "").trim()
         val gmailClientId = properties.getProperty("GMAIL_CLIENT_ID", "").trim()
         val geminiModel = properties.getProperty("GEMINI_MODEL", "gemini-3.8-flash").trim()
+        val groqKey = properties.getProperty("GROQ_API_KEY", "").trim()
+        val groqModel = properties.getProperty("GROQ_MODEL", "llama-3.3-70b-versatile").trim()
         val escapedKey = rawKey
             .replace("\\", "\\\\")
             .replace("\"", "\\\"")
@@ -40,6 +42,14 @@ android {
         buildConfigField("String", "GEMINI_API_KEY", "\"$escapedKey\"")
         buildConfigField("String", "GMAIL_CLIENT_ID", "\"${gmailClientId.replace("\"", "\\\"")}\"")
         buildConfigField("String", "GEMINI_MODEL", "\"${geminiModel.replace("\"", "\\\"")}\"")
+        buildConfigField("String", "GROQ_API_KEY", "\"${groqKey.replace("\"", "\\\"")}\"")
+        buildConfigField("String", "GROQ_MODEL", "\"${groqModel.replace("\"", "\\\"")}\"")
+        manifestPlaceholders["gmailRedirectScheme"] =
+            if (gmailClientId.endsWith(".apps.googleusercontent.com")) {
+                "com.googleusercontent.apps.${gmailClientId.substringBefore(".apps.googleusercontent.com")}"
+            } else {
+                "com.aurviz.personalagent"
+            }
     }
 
     buildTypes {

@@ -31,7 +31,7 @@ interface AgentTool {
     fun validateArguments(arguments: Map<String, String>): String?
 }
 
-interface ConfirmableTool {
+interface ConfirmableTool : AgentTool {
     suspend fun confirm(): ToolResult
 }
 

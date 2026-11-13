@@ -15,6 +15,7 @@ class SpeechRecognizerManager(
         fun onPartialResult(text: String)
         fun onResult(text: String)
         fun onError(message: String)
+        fun onRmsChanged(rmsdB: Float) {}
     }
 
     private val appContext = context.applicationContext
@@ -22,7 +23,9 @@ class SpeechRecognizerManager(
         setRecognitionListener(object : RecognitionListener {
             override fun onReadyForSpeech(params: Bundle?) = Unit
             override fun onBeginningOfSpeech() = Unit
-            override fun onRmsChanged(rmsdB: Float) = Unit
+            override fun onRmsChanged(rmsdB: Float) {
+                listener.onRmsChanged(rmsdB)
+            }
             override fun onBufferReceived(buffer: ByteArray?) = Unit
             override fun onEndOfSpeech() = Unit
             override fun onEvent(eventType: Int, params: Bundle?) = Unit

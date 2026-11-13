@@ -37,4 +37,15 @@ class HistoryViewModel(
                 }
         }
     }
+
+    fun clearAll() {
+        viewModelScope.launch {
+            try {
+                executionLogRepository.deleteAllLogs()
+                refresh()
+            } catch (error: Exception) {
+                _uiState.value = UiState.Error(error.message ?: "Unable to clear history")
+            }
+        }
+    }
 }

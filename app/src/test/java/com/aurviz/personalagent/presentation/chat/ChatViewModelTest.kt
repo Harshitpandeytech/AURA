@@ -42,4 +42,25 @@ class ChatViewModelTest {
         val state = viewModel.uiState.value as UiState.Success
         assertTrue(state.data.messages.isEmpty())
     }
+
+    @Test
+    fun sendVoiceMessage_automaticallySendsNonBlankText() {
+        val viewModel = ChatViewModel()
+        viewModel.sendVoiceMessage("Voice command message")
+
+        val state = viewModel.uiState.value as UiState.Success
+        assertEquals(2, state.data.messages.size)
+        assertEquals(MessageRole.USER, state.data.messages[0].role)
+        assertEquals("Voice command message", state.data.messages[0].content)
+        assertEquals(MessageRole.ASSISTANT, state.data.messages[1].role)
+    }
+
+    @Test
+    fun sendVoiceMessage_ignoresBlankText() {
+        val viewModel = ChatViewModel()
+        viewModel.sendVoiceMessage("   ")
+
+        val state = viewModel.uiState.value as UiState.Success
+        assertTrue(state.data.messages.isEmpty())
+    }
 }
