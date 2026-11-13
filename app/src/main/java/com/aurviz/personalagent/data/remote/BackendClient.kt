@@ -56,7 +56,7 @@ class BackendClient(
                 put("email", email.trim())
                 put("password", password)
             }
-        ).jsonObject[ACCESS_TOKEN]?.jsonPrimitive?.content
+        ).jsonObject["accessToken"]?.jsonPrimitive?.content
             ?.also { secureStorage.putString(ACCESS_TOKEN, it) }
             ?: error("Backend authentication response omitted accessToken")
 
