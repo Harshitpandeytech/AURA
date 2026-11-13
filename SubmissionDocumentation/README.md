@@ -14,7 +14,7 @@ OAuth, encrypted token storage, PostgreSQL, and server-side jobs.
 
 ### Android
 
-- JDK 17
+- JDK 17 or a compatible JDK supported by the installed Kotlin plugin
 - Android SDK API 34
 - Android Studio or the Android SDK command-line tools
 - A connected Android device or emulator
@@ -36,7 +36,8 @@ OAuth, encrypted token storage, PostgreSQL, and server-side jobs.
    ```
 
 2. Set `sdk.dir` in `local.properties`.
-3. For local development only, add a Gemini key and Gmail OAuth client ID.
+3. For a Railway-backed build, add `AURA_BACKEND_URL` and do not add provider
+   keys to a release build.
 4. Enable the Gmail API and configure the OAuth consent screen in Google Cloud.
 5. Use an Android OAuth client. The app derives its redirect scheme from the
    client ID.
@@ -87,7 +88,10 @@ Never commit `local.properties`. It is ignored by Git.
 
 For Railway, use a persistent PostgreSQL service, deploy the backend using
 [`../backend/Dockerfile`](../backend/Dockerfile), add the environment variables
-in Railway, and run the worker as a separate service.
+in Railway, and run the worker as a separate service. The Railway deployment
+uses the committed Prisma migration and runs `npm run db:migrate` before deploy.
+Vercel is not used for this backend because the scheduled worker requires a
+persistent process.
 
 ## 5. Build and run the APK
 
@@ -115,17 +119,21 @@ Install on a connected device:
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-For a release build, set `AURA_BACKEND_URL` in `local.properties`. Release
-builds intentionally remove Gemini, Groq, and local Gmail client secrets from
-`BuildConfig`; the app uses the authenticated backend AI service.
+For a Railway-backed build, set `AURA_BACKEND_URL` in `local.properties`.
+Release builds intentionally remove Gemini, Groq, and local Gmail client
+secrets from `BuildConfig`; the app uses the authenticated backend AI service.
 
 ```bash
 ./gradlew assembleRelease
 ```
 
-The release build must use the backend for AI and Gmail operations. Do not
-ship Gemini/Groq keys inside an APK because values in `BuildConfig` can be
-extracted from a released application.
+Do not ship Gemini/Groq keys inside an APK because values in `BuildConfig` can
+be extracted from a released application. For evaluation without Google Play,
+the debug APK is installable by sideloading:
+
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
 ## 6. API smoke checks
 
@@ -170,31 +178,45 @@ start requests.
 - Backend scaffold with JWT authentication, Prisma schema, AI proxy, Gmail OAuth,
   encrypted token storage, and PostgreSQL scheduled jobs.
 
-## 8. Incomplete or production follow-up items
+## 8. Final submission checklist
+
+- [x] Source code pushed to GitHub.
+- [x] Railway API and worker configuration documented.
+- [x] Initial Prisma migration committed.
+- [x] APK build verified with the Railway backend URL configured locally.
+- [x] APK output path: `app/build/outputs/apk/debug/app-debug.apk`.
+- [x] APK installation command documented.
+- [x] Secrets excluded from GitHub (`local.properties` and backend `.env`).
+- [ ] Evaluator creates or receives a backend demo account.
+- [ ] Evaluator installs and tests the APK on an Android device or emulator.
+- [ ] Target-device performance measurements are collected.
+
+## 9. Incomplete or production follow-up items
 
 - Android now supports backend login/register and routes production AI calls
   through `/v1/ai/generate`. Gmail operations still use the local Android OAuth
   path; server-side Gmail API operation endpoints remain to be added.
 - Backend Gmail and AI flows need an end-to-end Railway/PostgreSQL deployment test.
-- A production release needs signing configuration, Play App Signing, privacy
-  policy, OAuth verification, and notification permission testing.
+- A production release needs signing configuration, privacy policy, OAuth
+  verification, and notification permission testing. These are not required
+  for APK-only academic evaluation.
 - Server-side scheduled email execution needs a production queue such as pg-boss
   and provider rate-limit handling.
 - Device measurements must be collected on the target emulator or phone.
 
-## 9. Architecture and design
+## 10. Architecture and design
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-## 10. Performance
+## 11. Performance
 
 See [PERFORMANCE.md](./PERFORMANCE.md).
 
-## 11. Database
+## 12. Database
 
 See [DATABASE.md](./DATABASE.md).
 
-## 12. Main engineering challenges
+## 13. Main engineering challenges
 
 ### Safe tool execution
 

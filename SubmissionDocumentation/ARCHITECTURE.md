@@ -23,9 +23,10 @@ Production path
 
 The [`backend/`](../backend/) service is the production boundary for multi-user
 authentication, AI provider calls, Google OAuth, encrypted Gmail tokens, and server-side
-scheduled jobs. The Android app keeps its local Room/WorkManager path for offline and
-development use; a production flavor should configure the backend `/v1` API and omit
-provider keys from `BuildConfig`.
+scheduled jobs. When `AURA_BACKEND_URL` is configured, Android authenticates against
+the backend and routes AI requests through `/v1/ai/generate`. The Android app keeps its
+local Room/WorkManager path for device memory and local scheduled tasks; release
+provider keys are blank.
 
 ## Agent flow
 

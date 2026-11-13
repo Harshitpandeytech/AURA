@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Schedule
@@ -730,7 +731,7 @@ private fun GlassInputCapsule(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Elevating Send Button (Image 2 upwards arrow style)
+                // Elevating Send Button (Aquarium upward arrow style)
                 val canSend = draft.isNotBlank()
                 Box(
                     modifier = Modifier
@@ -745,25 +746,25 @@ private fun GlassInputCapsule(
                             )
                             else Brush.linearGradient(
                                 listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.surfaceVariant
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
                                 )
                             )
                         )
                         .border(
                             width = 1.dp,
-                            color = if (canSend) Color.White.copy(alpha = 0.3f) else Color.Transparent,
+                            color = if (canSend) Color.White.copy(alpha = 0.45f) else Color.White.copy(alpha = 0.08f),
                             shape = CircleShape
                         )
                         .clickable(enabled = canSend, onClick = onSend),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        imageVector = Icons.Default.ArrowUpward,
                         contentDescription = "Send",
                         tint = if (canSend) MaterialTheme.colorScheme.onPrimary
-                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                        modifier = Modifier.size(18.dp)
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
+                        modifier = Modifier.size(19.dp)
                     )
                 }
             }

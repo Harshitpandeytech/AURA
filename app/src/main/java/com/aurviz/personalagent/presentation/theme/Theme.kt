@@ -65,41 +65,68 @@ private val AuraLightColorScheme = lightColorScheme(
 private val MeadowTypography = Typography(
     displayLarge = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 42.sp,
-        lineHeight = 46.sp
+        fontWeight = FontWeight.Light,
+        fontSize = 40.sp,
+        lineHeight = 46.sp,
+        letterSpacing = (-1.2).sp
     ),
     headlineLarge = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 32.sp,
-        lineHeight = 36.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 30.sp,
+        lineHeight = 36.sp,
+        letterSpacing = (-0.8).sp
     ),
     headlineMedium = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Bold,
-        fontSize = 26.sp,
-        lineHeight = 31.sp
+        fontWeight = FontWeight.Medium,
+        fontSize = 24.sp,
+        lineHeight = 30.sp,
+        letterSpacing = (-0.5).sp
     ),
     titleLarge = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.SemiBold,
-        fontSize = 21.sp
+        fontSize = 20.sp,
+        letterSpacing = (-0.3).sp
+    ),
+    titleMedium = androidx.compose.ui.text.TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        letterSpacing = (-0.2).sp
     ),
     bodyLarge = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontSize = 17.sp,
-        lineHeight = 24.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 23.sp,
+        letterSpacing = (-0.1).sp
     ),
     bodyMedium = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontSize = 15.sp,
-        lineHeight = 21.sp
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = (-0.05).sp
+    ),
+    bodySmall = androidx.compose.ui.text.TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.5.sp,
+        lineHeight = 17.sp
     ),
     labelLarge = androidx.compose.ui.text.TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
-        fontSize = 14.sp
+        fontSize = 13.5.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelMedium = androidx.compose.ui.text.TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        letterSpacing = 0.2.sp
     )
 )
 

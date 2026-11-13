@@ -1,9 +1,9 @@
 # Performance Analysis
 
 Measurements must be collected on the target emulator/device after configuring
-JDK 17, Android SDK, Gemini, and Gmail OAuth. No device or production database
-was available in this workspace, so device-dependent values are intentionally
-marked as pending rather than invented.
+the Railway backend, Android SDK, and Gmail OAuth. The APK build and backend
+build were verified locally; device-dependent values are intentionally marked
+as pending rather than invented.
 
 | Measurement | Result | Method |
 |---|---:|---|

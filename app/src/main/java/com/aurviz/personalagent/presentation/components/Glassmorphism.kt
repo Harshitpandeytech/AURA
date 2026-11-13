@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.sp
 fun GlassCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(24.dp),
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
-    borderColor: Color = Color.White.copy(alpha = 0.15f),
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.62f),
+    borderColor: Color = Color.White.copy(alpha = 0.32f),
     borderWidth: Dp = 1.dp,
     content: @Composable BoxScope.() -> Unit
 ) {
@@ -43,10 +43,11 @@ fun GlassCard(
             .background(backgroundColor)
             .border(
                 width = borderWidth,
-                brush = Brush.linearGradient(
+                brush = Brush.verticalGradient(
                     listOf(
                         borderColor,
-                        borderColor.copy(alpha = 0.04f)
+                        borderColor.copy(alpha = 0.08f),
+                        borderColor.copy(alpha = 0.22f)
                     )
                 ),
                 shape = shape
@@ -54,6 +55,32 @@ fun GlassCard(
         content = content
     )
 }
+
+@Composable
+fun FrostedPill(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+    borderColor: Color = Color.White.copy(alpha = 0.45f),
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(backgroundColor)
+            .border(
+                width = 1.dp,
+                brush = Brush.verticalGradient(
+                    listOf(
+                        borderColor,
+                        borderColor.copy(alpha = 0.1f)
+                    )
+                ),
+                shape = RoundedCornerShape(999.dp)
+            ),
+        content = content
+    )
+}
+
 @Composable
 fun QuickActionChip(
     label: String,
@@ -64,20 +91,20 @@ fun QuickActionChip(
 ) {
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+            .clip(RoundedCornerShape(999.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.52f))
             .border(
                 width = 1.dp,
-                brush = Brush.linearGradient(
+                brush = Brush.verticalGradient(
                     listOf(
-                        Color.White.copy(alpha = 0.18f),
-                        Color.White.copy(alpha = 0.04f)
+                        Color.White.copy(alpha = 0.42f),
+                        Color.White.copy(alpha = 0.08f)
                     )
                 ),
-                shape = RoundedCornerShape(16.dp)
+                shape = RoundedCornerShape(999.dp)
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -85,12 +112,12 @@ fun QuickActionChip(
             imageVector = icon,
             contentDescription = null,
             tint = accentColor,
-            modifier = Modifier.size(16.dp)
+            modifier = Modifier.size(15.dp)
         )
-        Spacer(modifier = Modifier.width(6.dp))
+        Spacer(modifier = Modifier.width(7.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
+            style = MaterialTheme.typography.labelMedium.copy(fontSize = 12.5.sp),
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface
         )
