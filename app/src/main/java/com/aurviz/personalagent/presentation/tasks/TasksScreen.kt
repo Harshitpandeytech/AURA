@@ -53,22 +53,27 @@ import com.aurviz.personalagent.utils.DateTimeUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TasksScreen(viewModel: TasksViewModel = auraViewModel()) {
+fun TasksScreen(
+    viewModel: TasksViewModel = auraViewModel(),
+    showTopBar: Boolean = true
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showAdd by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            title = { Text("Scheduled Tasks", fontWeight = FontWeight.Bold) },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            actions = {
-                androidx.compose.material3.IconButton(onClick = { showAdd = true }) {
-                    androidx.compose.material3.Icon(Icons.Default.Add, contentDescription = "Add task")
+        if (showTopBar) {
+            TopAppBar(
+                title = { Text("Scheduled Tasks", fontWeight = FontWeight.Bold) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                actions = {
+                    IconButton(onClick = { showAdd = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Add task")
+                    }
                 }
-            }
-        )
+            )
+        }
 
         when (val state = uiState) {
             UiState.Idle, UiState.Loading -> LoadingState("Loading tasks")
@@ -116,8 +121,8 @@ private fun TaskList(
             GlassCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
-                backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                borderColor = Color.White.copy(alpha = 0.12f)
+                backgroundColor = MaterialTheme.colorScheme.surface,
+                borderColor = MaterialTheme.colorScheme.outlineVariant
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),

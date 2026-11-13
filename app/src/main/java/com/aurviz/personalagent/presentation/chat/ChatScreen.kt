@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -183,7 +184,11 @@ fun ChatScreen(viewModel: ChatViewModel = auraViewModel()) {
             enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.96f),
             exit = fadeOut(tween(220)) + scaleOut(targetScale = 1.04f)
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+            ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -657,8 +662,8 @@ private fun GlassInputCapsule(
         GlassCard(
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(28.dp),
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
-            borderColor = Color.White.copy(alpha = 0.18f),
+            backgroundColor = MaterialTheme.colorScheme.surface,
+            borderColor = MaterialTheme.colorScheme.outlineVariant,
             borderWidth = 1.2.dp
         ) {
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 4.dp)) {

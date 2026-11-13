@@ -72,6 +72,7 @@ import com.aurviz.personalagent.presentation.components.ErrorState
 import com.aurviz.personalagent.presentation.components.GlassCard
 import com.aurviz.personalagent.presentation.components.LoadingState
 import com.aurviz.personalagent.presentation.navigation.auraViewModel
+import com.aurviz.personalagent.presentation.tasks.TasksScreen
 import com.aurviz.personalagent.utils.DateTimeUtils
 import com.aurviz.personalagent.utils.UiState
 
@@ -79,7 +80,8 @@ enum class HistoryFilter(val label: String) {
     ALL("All Events"),
     TOOLS("Tools & Actions"),
     CHAT("Chat Queries"),
-    FAILED("Errors")
+    FAILED("Errors"),
+    TASKS("Scheduled Tasks")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -169,7 +171,9 @@ fun HistoryScreen(viewModel: HistoryViewModel = auraViewModel()) {
             }
         }
 
-        when (val state = uiState) {
+        if (selectedFilter == HistoryFilter.TASKS) {
+            TasksScreen(showTopBar = false)
+        } else when (val state = uiState) {
             UiState.Idle, UiState.Loading -> LoadingState("Loading activity logs...")
             is UiState.Error -> ErrorState(state.message, onRetry = viewModel::refresh)
             is UiState.Success -> {
@@ -179,6 +183,7 @@ fun HistoryScreen(viewModel: HistoryViewModel = auraViewModel()) {
                         HistoryFilter.TOOLS -> state.data.filter { it.taskId.startsWith("tool_") || it.taskId.startsWith("confirm_") }
                         HistoryFilter.CHAT -> state.data.filter { it.taskId.startsWith("chat_") }
                         HistoryFilter.FAILED -> state.data.filter { it.status == ExecutionStatus.FAILURE }
+                        HistoryFilter.TASKS -> emptyList()
                     }
                 }
 

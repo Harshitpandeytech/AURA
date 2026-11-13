@@ -13,120 +13,147 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.font.FontSynthesis
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 
+// ReferenceUI Palette
+val DeepSea = Color(0xFF06142B)
+val Accent = Color(0xFF7FE3FF)
+val TextPrimary = Color(0xFFEAF6FF)
+val TextSecondary = Color(0xFFA6C4DA)
+
 private val AuraDarkColorScheme = darkColorScheme(
-    primary = Color(0xFF72D7F2),
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFF174E63),
-    onPrimaryContainer = Color(0xFFB8F0FF),
-    secondary = Color(0xFFA8E9F5),
-    onSecondary = Color(0xFF003640),
-    secondaryContainer = Color(0xFF205D6B),
-    onSecondaryContainer = Color(0xFFC4F4FF),
-    tertiary = Color(0xFFFFB454),
-    onTertiary = Color(0xFF452B00),
-    background = Color(0xFF071A26),
-    onBackground = Color(0xFFE7F8FC),
-    surface = Color(0xFF0B2735),
-    onSurface = Color(0xFFE7F8FC),
-    surfaceVariant = Color(0xFF123D4D),
-    onSurfaceVariant = Color(0xFFA7CBD4),
-    outline = Color(0xFF3E7180),
-    outlineVariant = Color(0xFF214B5A)
+    primary = Accent,
+    onPrimary = DeepSea,
+    primaryContainer = Color(0xFF103356),
+    onPrimaryContainer = Color(0xFFBCEBFF),
+    secondary = Color(0xFF9FE9FF),
+    onSecondary = DeepSea,
+    secondaryContainer = Color(0xFF132A4A),
+    onSecondaryContainer = Color(0xFFD4F4FF),
+    tertiary = Color(0xFFB9A8FF),
+    onTertiary = Color(0xFF1A134D),
+    background = DeepSea,
+    onBackground = TextPrimary,
+    surface = Color(0xFF091C36),
+    onSurface = TextPrimary,
+    surfaceVariant = Color(0xFF132A4A),
+    onSurfaceVariant = TextSecondary,
+    outline = Color(0xFF2B4D73),
+    outlineVariant = Color(0xFF163252)
 )
 
 private val AuraLightColorScheme = lightColorScheme(
-    primary = Color(0xFF167A99),
+    primary = Color(0xFF08688A),
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFB7ECF8),
-    onPrimaryContainer = Color(0xFF003544),
-    secondary = Color(0xFF3C9BB2),
+    primaryContainer = Color(0xFFBBEFFF),
+    onPrimaryContainer = Color(0xFF003547),
+    secondary = Color(0xFF2E85A3),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFC5F2FA),
-    onSecondaryContainer = Color(0xFF003640),
-    tertiary = Color(0xFFB76A00),
+    secondaryContainer = Color(0xFFCBEFF9),
+    onSecondaryContainer = Color(0xFF003643),
+    tertiary = Color(0xFF5A4EB3),
     onTertiary = Color.White,
-    background = Color(0xFFE8F8FB),
-    onBackground = Color(0xFF102A33),
-    surface = Color(0xFFF6FDFF),
-    onSurface = Color(0xFF102A33),
-    surfaceVariant = Color(0xFFD8F0F5),
-    onSurfaceVariant = Color(0xFF496A73),
-    outline = Color(0xFF6A9AA4),
-    outlineVariant = Color(0xFFB8D7DE)
+    background = Color(0xFFF0F8FD),
+    onBackground = Color(0xFF071C28),
+    surface = Color(0xFFF8FCFF),
+    onSurface = Color(0xFF071C28),
+    surfaceVariant = Color(0xFFD7EAF3),
+    onSurfaceVariant = Color(0xFF456475),
+    outline = Color(0xFF6B93A8),
+    outlineVariant = Color(0xFFBCD8E6)
 )
 
-private val MeadowTypography = Typography(
+private val ReplineTypography = Typography(
     displayLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Light,
-        fontSize = 40.sp,
-        lineHeight = 46.sp,
-        letterSpacing = (-1.2).sp
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 42.sp,
+        lineHeight = 48.sp,
+        letterSpacing = 1.2.sp
+    ),
+    displayMedium = androidx.compose.ui.text.TextStyle(
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
+        letterSpacing = 0.8.sp
     ),
     headlineLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = Repline,
         fontWeight = FontWeight.Normal,
-        fontSize = 30.sp,
-        lineHeight = 36.sp,
-        letterSpacing = (-0.8).sp
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 28.sp,
+        lineHeight = 34.sp,
+        letterSpacing = 0.4.sp
     ),
     headlineMedium = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
-        fontSize = 24.sp,
-        lineHeight = 30.sp,
-        letterSpacing = (-0.5).sp
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.2.sp
     ),
     titleLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
         fontSize = 20.sp,
-        letterSpacing = (-0.3).sp
+        lineHeight = 26.sp,
+        letterSpacing = 0.5.sp
     ),
     titleMedium = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        letterSpacing = (-0.2).sp
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 17.sp,
+        lineHeight = 22.sp,
+        letterSpacing = 0.3.sp
     ),
     bodyLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = Repline,
         fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
         fontSize = 16.sp,
         lineHeight = 23.sp,
-        letterSpacing = (-0.1).sp
+        letterSpacing = 0.2.sp
     ),
     bodyMedium = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
+        fontFamily = Repline,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 14.5.sp,
         lineHeight = 20.sp,
-        letterSpacing = (-0.05).sp
-    ),
-    bodySmall = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.5.sp,
-        lineHeight = 17.sp
-    ),
-    labelLarge = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
-        fontSize = 13.5.sp,
         letterSpacing = 0.1.sp
     ),
+    bodySmall = androidx.compose.ui.text.TextStyle(
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 12.5.sp,
+        lineHeight = 17.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelLarge = androidx.compose.ui.text.TextStyle(
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 14.sp,
+        letterSpacing = 0.3.sp
+    ),
     labelMedium = androidx.compose.ui.text.TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        letterSpacing = 0.2.sp
+        fontFamily = Repline,
+        fontWeight = FontWeight.Normal,
+        fontSynthesis = FontSynthesis.None,
+        fontSize = 12.5.sp,
+        letterSpacing = 0.4.sp
     )
 )
 
@@ -156,7 +183,7 @@ fun AuraTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = MeadowTypography,
+        typography = ReplineTypography,
         content = content
     )
 }
